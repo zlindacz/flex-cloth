@@ -1,0 +1,13 @@
+I will be using WebGL and HTML5 Canvas to create a 3D model of a dress, similar to this 3D cloud model: https://www.clicktorelease.com/code/css3dclouds/#. There will be a sidebar where the user can toggle certain features of the dress, such as hem length, sleeve length, color, and body measurements (bonus).
+
+MVP:
+1. sidebar with options for hem and sleeve lengths and color
+2. 3d rendering of dress on the right
+3. dress can rotate with mouse movements
+4. toggle fullscreen
+
+Bonus:
+1. dress is proportional to user input of body measurements
+2. incorporate lighting
+3. user can upload a pattern (cloudinary)
+4. user can save image
