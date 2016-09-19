@@ -31,15 +31,15 @@ This app will consist of a single screen.
 
 The menu is collapsable
 
-![collapsed menu](wireframes/collapsed.png)
+![collapsed menu](/lib/docs/wireframes/collapsed.png)
 
 The Fullscreen button will take the user to Fullscreen mode where the menu disappears. The user can return to menu view by pressing the esc key.
 
-![full screen view](wireframes/fullscreen.png)
+![full screen view](/lib/docs/wireframes/fullscreen.png)
 
 A detailed view of the controller
 
-![menu](wireframes/menu-large.png)
+![menu](/lib/docs/wireframes/menu-large.png)
 
 ### Architecture and Technologies
 
