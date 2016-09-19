@@ -27,7 +27,7 @@ In addition, this project will include:
 
 This app will consist of a single screen.
 
-![regular view](wireframes/regular.png)
+![regular view](/lib/docs/wireframes/regular.png)
 
 The menu is collapsable
 
