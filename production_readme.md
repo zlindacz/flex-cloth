@@ -1,0 +1,2 @@
+- Download a female figure .blend file from clara.io and use Blender to create mesh for upper body from which dress will hang.
+- Export from Blender and import from dress script

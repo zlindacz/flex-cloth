@@ -54,9 +54,9 @@ This project will be implemented with the following technologies:
 
 ### Implementation Timeline
 
-**Day 1**: Follow the Three.js documentation to create 3D animation of a cube to familiarize with how 3D graphics and WebGL work
+**Day 1**: Follow the Three.js documentation to create 3D animation of a cube to familiarize with how 3D graphics and WebGL work.
 
-**Day 2**: Render the dress using the Mesh property. Make it able to rotate
+**Day 2**: Learn Blender and create a mesh of body for the dress. Render the dress using the Mesh property of Three.js. Make it able to rotate
 
 **Day 3**: Create the menu and make the dress respond to length changes
 
