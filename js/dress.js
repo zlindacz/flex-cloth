@@ -20,8 +20,8 @@ function init() {
 
   // camera
 
-  camera = new THREE.PerspectiveCamera(90, WIDTH / HEIGHT, 0.1, 10000);
-  camera.position.set(0, 10, 0);
+  camera = new THREE.PerspectiveCamera(45, WIDTH / HEIGHT, 0.1, 10000);
+  camera.position.set(0, 25, 75);
   scene.add(camera);
 
   // resizing
@@ -41,11 +41,17 @@ function init() {
 
   // female model
 
-  var loader = new THREE.JSONLoader();
-  loader.load("assets/models/dress-model.js", function(geometry) {
-    var material = new THREE.MeshLambertMaterial( {color: 0x55B663});
-    mesh = new THREE.Mesh(geometry, material);
-    scene.add(mesh);
+  var femaleModel = new THREE.JSONLoader();
+  femaleModel.load("assets/models/dress-model.js", function(geometry) {
+    var material = new THREE.MeshLambertMaterial( {
+      color: 0xaaaaaa,
+      // transparent: true,
+      opacity: 0.01
+    });
+    modelMesh = new THREE.Mesh(geometry, material);
+    modelMesh.castShadow = true;
+    modelMesh.receiveShadow = true;
+    scene.add(modelMesh);
   });
 
   // cloth material
@@ -70,9 +76,9 @@ function init() {
   // cloth mesh
 
   clothObject = new THREE.Mesh(clothGeometry, clothMaterial);
-  clothObject.position.set(50, 50, 0);
+  clothObject.position.set(0, -10, 0);
   clothObject.castShadow = true;
-  camera.add(clothObject);
+  scene.add(clothObject);
 
   clothObject.customDepthMaterial = new THREE.ShaderMaterial( {
     uniforms: uniforms,
