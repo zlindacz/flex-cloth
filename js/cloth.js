@@ -8,7 +8,7 @@ var structuralSprings = true;
 // var shearSprings = false;
 // var bendingSprings = true;
 
-var restDistance;
+var restDistance = 2;
 // var restDistanceB = 2; // for bending
 // var restDistanceS = Math.sqrt(2); // for shearing
 
@@ -16,7 +16,7 @@ var friction = 0.9; // 0 = frictionless, 1 = sticky cloth
 
 var xSegs = 30; // how many particles wide is the cloth
 var ySegs = 30; // how many particles tall is the cloth
-var fabricLength = 200; // size of cloth
+var fabricLength = 35; // size of cloth
 
 var GRAVITY = 9.81 * 140;
 var gravity = new THREE.Vector3( 0, -GRAVITY, 0 ).multiplyScalar( MASS );
@@ -27,9 +27,10 @@ var TIMESTEP_SQ = TIMESTEP * TIMESTEP;
 // var windStrength = 2;
 // var windForce = new THREE.Vector3( 0, 0, 0 );
 
-var clothInitialPosition = plane(restDistance * xSegs, restDistance * ySegs);
+// var clothInitialPosition = plane(restDistance * xSegs, restDistance * ySegs);
+var clothInitialPosition = plane(30,30);
 var cloth = new Cloth(xSegs, ySegs, fabricLength);
-
+var pos;
 // var tmpForce = new THREE.Vector3(); // for wind calc
 
 // for movements and constraints
@@ -39,9 +40,13 @@ var whereAmI, whereWasI;
 
 function plane(width, height) {
   return function(u, v) {
-    var x = (u - 0.5) * width;
-    var y = (v + 0.5) * height;
-    var z = 0;
+    // var x = (u - 0.5) * width;
+    // var y = (v + 0.5) * height;
+    // var z = 0;
+
+    var x = u * width - width/2;
+    var y = 20; //height/2;
+    var z = v * height - height/2;
 
     return new THREE.Vector3(x, y, z);
   };
@@ -68,8 +73,8 @@ Particle.prototype.addForce = function(force) {
 
 Particle.prototype.integrate = function(timesq) {
   var newPos = this.tmp.subVectors(this.position, this.previous);
-  newPos.multuplyScalar(DRAG).add(this.position);
-  newPos.add(this.acceleration.multuplyScalar(timesq));
+  newPos.multiplyScalar(DRAG).add(this.position);
+  newPos.add(this.acceleration.multiplyScalar(timesq));
 
   this.tmp = this.previous;
   this.previous = this.position;
@@ -103,14 +108,9 @@ function repelParticles( p1, p2, distance) {
 // performs Verlet integration
 
 function Cloth(w, h, l) {
-  // w = w || 400;
-  // h = h || 600;
   this.w = w;
   this.h = h;
   restDistance = l/w;
-  this.particles = particles;
-  this.constraints = constraints;
-  this.index = index;
 
   var particles = [];
   var constraints = [];
@@ -123,22 +123,6 @@ function Cloth(w, h, l) {
   for (v = 0; v <= h; v++ ) {
     for (u = 0; u <= w; u++) {
       particles.push(new Particle( u/w, v/h, 0, MASS ));
-
-      // if (v<h && (u == 0 || u == w)){
-      //     constrains.push( [
-      //       particles[ index( u, v ) ],
-      //       particles[ index( u, v + 1 ) ],
-      //       restDistance
-      //     ] );
-      //   }
-      //
-      // if(u<w && (v == 0 || v == h)){
-      //   constrains.push( [
-      //     particles[ index( u, v ) ],
-      //     particles[ index( u + 1, v ) ],
-      //     restDistance
-      //   ] );
-      // }
     }
   }
 
@@ -146,22 +130,30 @@ function Cloth(w, h, l) {
   // from neighboring particles, allows for movement without disintegration
   // of the "material" and gives "springy" feel
 
-  if (structuralSprings) {
+  // if (structuralSprings) {
     for (v = 0; v < h; v++) {
       for (u = 0; u < w; u++) {
         constraints.push([
           particles[index(u, v)],
           particles[index(u, v + 1)],
+          restDistance
+        ]);
+
+        constraints.push([
+          particles[index(u, v)],
           particles[index(u + 1, v)],
           restDistance
         ]);
       }
     }
-  }
+    this.particles = particles;
+    this.constraints = constraints;
+  // }
 
   function index(u,v) {
     return u+v*(w+1);
   }
+  this.index = index;
 }
 
 function map(n, start1, stop1, start2, stop2) {
@@ -175,17 +167,27 @@ function simulate(time) {
   }
 
   var i, il, particles, particle, constraints, constraint;
-
   for (particles = cloth.particles, i=0, il=particles.length; i<il; i++) {
     particle = particles[i];
     particle.addForce(gravity);
     particle.integrate(TIMESTEP_SQ); // verlet integration
   }
 
+  // constraints, so cloth stays in visible and area and behaves like cloth
+
   constraints = cloth.constraints;
   il = constraints.length;
   for (i=0; i<il; i++) {
     constraint = constraints[i];
-    satisfyConstraints(constraint[0], constraint[1], constraint[2], constraint[3]);
+    satisfyConstraints(constraint[0], constraint[1], constraint[2]);
+  }
+
+  // Floor Constaints
+  for (particles = cloth.particles, i = 0, il = particles.length; i < il; i++) {
+    particle = particles[i];
+    pos = particle.position;
+    if (pos.y < -5) {
+      pos.y = -5;
+    }
   }
 }

@@ -1,4 +1,5 @@
 var scene, camera, renderer;
+var clothGeometry;
 
 init();
 animate();
@@ -61,10 +62,17 @@ function init() {
   clothTexture.wrapS = clothTexture.wrapT = THREE.RepeatWrapping;
   clothTexture.anisotropy = 16;
 
-  var clothMaterial = new THREE.MeshLambertMaterial( {
-    map: clothTexture
-  });
-
+  // var clothMaterial = new THREE.MeshLambertMaterial( {
+  //   map: clothTexture
+  // });
+  clothMaterial = new THREE.MeshPhongMaterial( {
+		color: 0xaa2929,
+		specular: 0x030303,
+		wireframeLinewidth: 2,
+		map: clothTexture,
+		side: THREE.DoubleSide,
+		alphaTest: 0.5
+	} );
   // cloth geometry
   clothGeometry = new THREE.ParametricGeometry(clothInitialPosition, cloth.w, cloth.h);
   clothGeometry.dynamic = true;
@@ -76,9 +84,8 @@ function init() {
   // cloth mesh
 
   clothObject = new THREE.Mesh(clothGeometry, clothMaterial);
-  clothObject.position.set(0, -10, 0);
+  clothObject.position.set(0, 0, 0);
   clothObject.castShadow = true;
-  scene.add(clothObject);
 
   clothObject.customDepthMaterial = new THREE.ShaderMaterial( {
     uniforms: uniforms,
@@ -87,12 +94,47 @@ function init() {
     side: THREE.DoubleSide
   });
 
+  scene.add(clothObject);
+
+  // floor material
+  // floorMaterial = new THREE.MeshPhongMaterial({
+  //   // color: 0x404761
+  //   color: 0x379c53,
+	// 	specular: 0x404761
+  // });
+
+  // floor mesh
+  // var floorMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(10000, 10000), floorMaterial);
+  // floorMesh.position.y = -250;
+  // floorMesh.rotation.x = -Math.PI / 2;
+  // floorMesh.receiveShadow = true;
+  // scene.add(floorMesh); // add floor to scene
 
   controls = new THREE.OrbitControls(camera, renderer.domElement);
 }
 
 function animate() {
   requestAnimationFrame(animate);
-  renderer.render(scene, camera);
+  var time = Date.now();
+  simulate(time);
+  render();
   controls.update();
+}
+
+function render() {
+  var timer = Date.now() * 0.0002;
+  var p = cloth.particles;
+  for (var i=0, il = p.length; i<il; i++) {
+    clothGeometry.vertices[i].copy(p[i].position);
+  }
+
+  // recalculate cloth normals
+  clothGeometry.computeFaceNormals();
+  clothGeometry.computeVertexNormals();
+
+  clothGeometry.normalsNeedUpdate = true;
+  clothGeometry.verticesNeedUpdate = true;
+
+  camera.lookAt(scene.position);
+  renderer.render(scene, camera);
 }
