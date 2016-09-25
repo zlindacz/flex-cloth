@@ -22,7 +22,7 @@ function init() {
   // camera
 
   camera = new THREE.PerspectiveCamera(45, WIDTH / HEIGHT, 0.1, 10000);
-  camera.position.set(0, 25, 75);
+  camera.position.set(0, 5, 20);
   scene.add(camera);
 
   // resizing
@@ -42,7 +42,7 @@ function init() {
 
   // female model
 
-  var femaleModel = new THREE.JSONLoader();
+  femaleModel = new THREE.JSONLoader();
   femaleModel.load("assets/models/dress-model.js", function(geometry) {
     var material = new THREE.MeshLambertMaterial( {
       color: 0xaaaaaa,
@@ -68,7 +68,7 @@ function init() {
   clothMaterial = new THREE.MeshPhongMaterial( {
 		color: 0xaa2929,
 		specular: 0x030303,
-		wireframeLinewidth: 2,
+		// wireframeLinewidth: 2,
 		map: clothTexture,
 		side: THREE.DoubleSide,
 		alphaTest: 0.5
@@ -97,18 +97,18 @@ function init() {
   scene.add(clothObject);
 
   // floor material
-  // floorMaterial = new THREE.MeshPhongMaterial({
-  //   // color: 0x404761
-  //   color: 0x379c53,
-	// 	specular: 0x404761
-  // });
+  floorMaterial = new THREE.MeshPhongMaterial({
+    color: 0x404761,
+    // color: 0x379c53,
+		specular: 0x404761
+  });
 
   // floor mesh
-  // var floorMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(10000, 10000), floorMaterial);
-  // floorMesh.position.y = -250;
-  // floorMesh.rotation.x = -Math.PI / 2;
-  // floorMesh.receiveShadow = true;
-  // scene.add(floorMesh); // add floor to scene
+  var floorMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(10000, 10000), floorMaterial);
+  floorMesh.position.y = -50;
+  floorMesh.rotation.x = -Math.PI / 2;
+  floorMesh.receiveShadow = true;
+  scene.add(floorMesh); // add floor to scene
 
   controls = new THREE.OrbitControls(camera, renderer.domElement);
 }
