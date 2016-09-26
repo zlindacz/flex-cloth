@@ -8,11 +8,11 @@ var structuralSprings = true;
 var restDistance = 2;
 var friction = 0.9; // 0 = frictionless, 1 = sticky cloth
 
-var xSegs = 10; // how many particles wide is the cloth
-var ySegs = 10; // how many particles tall is the cloth
-var fabricLength = 15; // size of cloth
+var xSegs = 30; // how many particles wide is the cloth
+var ySegs = 30; // how many particles tall is the cloth
+var fabricLength = 500; // size of cloth
 
-var GRAVITY = 9.81 * 140;
+var GRAVITY = 9.81 * 50;
 var gravity = new THREE.Vector3( 0, -GRAVITY, 0 ).multiplyScalar( MASS );
 var TIMESTEP = 18 / 1000;
 var TIMESTEP_SQ = TIMESTEP * TIMESTEP;
@@ -22,11 +22,13 @@ var TIMESTEP_SQ = TIMESTEP * TIMESTEP;
 // var windForce = new THREE.Vector3( 0, 0, 0 );
 
 // var clothInitialPosition = plane(restDistance * xSegs, restDistance * ySegs);
-var clothInitialPosition = plane(20,20);
+var clothInitialPosition = plane(400, 400);
 var cloth = new Cloth(xSegs, ySegs, fabricLength);
 var pos;
 // var tmpForce = new THREE.Vector3(); // for wind calc
+
 var diff = new THREE.Vector3();
+
 
 function plane(width, height) {
   return function(u, v) {
@@ -35,7 +37,9 @@ function plane(width, height) {
     // var z = 0;
 
     var x = u * width - width/2;
-    var y = 5; //height/2;
+    // var y = 50; //height/2;
+    var y = 75;
+    // var z = v * height - height/2;
     var z = v * height - height/2;
 
     return new THREE.Vector3(x, y, z);
@@ -146,19 +150,37 @@ function Cloth(w, h, l) {
   this.index = index;
 }
 
-function map(n, start1, stop1, start2, stop2) {
-  return ((n-start1)/(stop1-start1)) * (stop2-start2) + start2;
+// function map(n, start1, stop1, start2, stop2) {
+//   return ((n-start1)/(stop1-start1)) * (stop2-start2) + start2;
+// }
+
+// cube position, using floor distance
+// var cubeDimension = 50;
+// var cubePosition = new THREE.Vector3(0, cubeDimension, 0);
+// var prevCubePosition = new THREE.Vector3(0, cubeDimension, 0);
+
+var a, b, c, d, e, f;
+function initializeBounds(box) {
+  a = box.min.x;
+  b = box.min.y;
+  c = box.min.z;
+  d = box.max.x;
+  e = box.max.y;
+  f = box.max.z;
 }
 
-// model mesh position, using floor distance
-var modelPosition = new THREE.Vector3(0, -50+femaleModel.height, 0);
-var prevModelPosition = new THREE.Vector3(0, -50+femaleModel.height, 0);
+var nearestX, nearestY, nearestZ;
+var currentX, currentY, currentZ;
+var xDist, yDist, zDist;
+// var randomPoints = [];
+// var rand, randX, randY;
+
 
 // for movements and constraints
 var lastTime;
 var whereAmI, whereWasI;
-var posFriction = new THREE.Vector3(0,0,0);
-var posNoFriction = new THREE.Vector3(0,0,0);
+var posFriction = new THREE.Vector3(0,50,0);
+var posNoFriction = new THREE.Vector3(0,50,0);
 
 function simulate(time) {
   if (!lastTime) {
@@ -186,8 +208,8 @@ function simulate(time) {
   for (particles = cloth.particles, i = 0, il = particles.length; i < il; i++) {
     particle = particles[i];
     pos = particle.position;
-    if (pos.y < -5) {
-      pos.y = -5;
+    if (pos.y < -99) {
+      pos.y = -99;
     }
   }
 
@@ -200,37 +222,84 @@ function simulate(time) {
     }
   }
 
-  // cloth sits atop model, doesn't fall through
-  // diff.subVectors(whereAmI, )
+  // cloth sits atop cube, doesn't fall through
   for (particles = cloth.particles, i=0, il=particles.length; i < il; i++) {
     particle = particles[i];
     whereAmI = particle.position;
     whereWasI = particle.previous;
 
-    diff.subVectors(whereAmI, modelPosition);
-    if (diff.length() < femaleModel.height) {
-      // if collided with model, make sure cloth doesn't go inside
+    if (boundingBox.containsPoint(whereAmI)) {
+      // we have collided with the cube
+      currentX = whereAmI.x;
+      currentY = whereAmI.y;
+      currentZ = whereAmI.z;
 
-      // no friction behavior:
-      // project point out to nearest point on model surface
-      diff.normalize().multiplyScalar(femaleModel.height);
-      posNoFriction.copy(modelPosition).add(diff);
+      if(currentX <= (a + d)/2){nearestX = a;}
+      else{nearestX = d;}
 
-      diff.subVectors(whereWasI, modelPosition);
+      if(currentY <= (b + e)/2){nearestY = b;}
+      else{nearestY = e;}
 
-      if (diff.length() > femaleModel.height) {
+      if(currentZ <= (c + f)/2){nearestZ = c;}
+      else{nearestZ = f;}
+
+      xDist = Math.abs(nearestX-currentX);
+      yDist = Math.abs(nearestY-currentY);
+      zDist = Math.abs(nearestZ-currentZ);
+
+      posNoFriction.copy(whereAmI);
+
+      if(zDist<=xDist && zDist<=yDist)
+      {
+        posNoFriction.z = nearestZ;
+      }
+      else if(yDist<=xDist && yDist<=zDist)
+      {
+        posNoFriction.y = nearestY;
+      }
+      else if(xDist<=yDist && xDist<=zDist)
+      {
+        posNoFriction.x = nearestX;
+      }
+
+      if(!boundingBox.containsPoint(whereWasI)){
         // with friction behavior:
-        // add the distance that the sphere moved in the last frame
-        // to the previous position of the particle
-        diff.subVectors(modelPosition, prevModelPosition);
-        posFriction.copy(whereWasI).add(diff);
-
-        posNoFriction.multiplyScalar(1-friction);
-        posFriction.multiplyScalar(friction);
-        whereAmI.copy(posFriction.add(posNoFriction));
-      } else {
+        // set particle to its previous position
+        posFriction.copy(whereWasI);
+        whereAmI.copy(posFriction.multiplyScalar(friction).add(posNoFriction.multiplyScalar(1-friction)));
+      }
+      else{
         whereAmI.copy(posNoFriction);
       }
     }
   }
 }
+
+
+
+  //   diff.subVectors(whereAmI, cubePosition);
+  //   if (diff.length() < cubeDimension) {
+  //     // if collided with model, make sure cloth doesn't go inside
+  //
+  //     // no friction behavior:
+  //     // project point out to nearest point on model surface
+  //     diff.normalize().multiplyScalar(cubeDimension);
+  //     posNoFriction.copy(cubePosition).add(diff);
+  //
+  //     diff.subVectors(whereWasI, cubePosition);
+  //
+  //     if (diff.length() > cubeDimension) {
+  //       // with friction behavior:
+  //       // add the distance that the sphere moved in the last frame
+  //       // to the previous position of the particle
+  //       diff.subVectors(cubePosition, prevCubePosition);
+  //       posFriction.copy(whereWasI).add(diff);
+  //
+  //       posNoFriction.multiplyScalar(1-friction);
+  //       posFriction.multiplyScalar(friction);
+  //       whereAmI.copy(posFriction.add(posNoFriction));
+  //     } else {
+  //       whereAmI.copy(posNoFriction);
+  //     }
+  //   }
+  // }

@@ -1,5 +1,7 @@
-var scene, camera, renderer;
+var scene, camera, renderer, controls;
 var clothGeometry;
+var boundingBox;
+var cube;
 
 init();
 animate();
@@ -20,13 +22,11 @@ function init() {
   document.body.appendChild(renderer.domElement);
 
   // camera
-
   camera = new THREE.PerspectiveCamera(45, WIDTH / HEIGHT, 0.1, 10000);
-  camera.position.set(0, 5, 20);
+  camera.position.set(-100, 150, 400);
   scene.add(camera);
 
   // resizing
-
   window.addEventListener('resize', function() {
     var WIDTH = window.innerWidth,
         HEIGHT = window.innerHeight;
@@ -37,42 +37,38 @@ function init() {
   renderer.setClearColor(0x333F47, 1);
 
   var light = new THREE.PointLight(0xffffff);
-  light.position.set(0, 50, 100);
+  light.position.set(50, 100, 50);
   camera.add(light);
 
-  // female model
+  // controls that allow us to change the camera view
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
 
-  femaleModel = new THREE.JSONLoader();
-  femaleModel.load("assets/models/dress-model.js", function(geometry) {
-    var material = new THREE.MeshLambertMaterial( {
-      color: 0xaaaaaa,
-      // transparent: true,
-      opacity: 0.01
-    });
-    modelMesh = new THREE.Mesh(geometry, material);
-    modelMesh.castShadow = true;
-    modelMesh.receiveShadow = true;
-    scene.add(modelMesh);
-  });
+  // every object has a geometry and material
+
+  //cube geometry, material, and mesh (to materialize the object)
+  var cubeGeometry = new THREE.BoxGeometry(250, 100, 250);
+  var cubeMaterial = new THREE.MeshLambertMaterial( {color: 0x43b1b1})
+  cube = new THREE.Mesh( cubeGeometry, cubeMaterial );
+  cube.position.set(0, 0, 0);
+
+  cubeGeometry.computeBoundingBox();
+  boundingBox = cube.geometry.boundingBox.clone(); // for cloth to interact with
+  initializeBounds(boundingBox);
 
   // cloth material
-
   var loader = new THREE.TextureLoader();
   var clothTexture = loader.load('./assets/textures/fabric_directional.jpg');
   clothTexture.wrapS = clothTexture.wrapT = THREE.RepeatWrapping;
   clothTexture.anisotropy = 16;
 
-  // var clothMaterial = new THREE.MeshLambertMaterial( {
-  //   map: clothTexture
-  // });
   clothMaterial = new THREE.MeshPhongMaterial( {
 		color: 0xaa2929,
 		specular: 0x030303,
-		// wireframeLinewidth: 2,
 		map: clothTexture,
 		side: THREE.DoubleSide,
 		alphaTest: 0.5
 	} );
+
   // cloth geometry
   clothGeometry = new THREE.ParametricGeometry(clothInitialPosition, cloth.w, cloth.h);
   clothGeometry.dynamic = true;
@@ -84,7 +80,7 @@ function init() {
   // cloth mesh
 
   clothObject = new THREE.Mesh(clothGeometry, clothMaterial);
-  clothObject.position.set(0, 0, 0);
+  clothObject.position.set(0, 50, 0);
   clothObject.castShadow = true;
 
   clothObject.customDepthMaterial = new THREE.ShaderMaterial( {
@@ -99,18 +95,17 @@ function init() {
   // floor material
   floorMaterial = new THREE.MeshPhongMaterial({
     color: 0x404761,
-    // color: 0x379c53,
 		specular: 0x404761
   });
 
   // floor mesh
   var floorMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(10000, 10000), floorMaterial);
-  floorMesh.position.y = -50;
+  floorMesh.position.y = -100;
   floorMesh.rotation.x = -Math.PI / 2;
   floorMesh.receiveShadow = true;
   scene.add(floorMesh); // add floor to scene
 
-  controls = new THREE.OrbitControls(camera, renderer.domElement);
+  // controls = new THREE.OrbitControls(camera, renderer.domElement);
 }
 
 function animate() {
