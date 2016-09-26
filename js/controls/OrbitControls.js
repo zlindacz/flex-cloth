@@ -1,9 +1,8 @@
 // This set of controls performs orbiting, dollying (zooming), and panning.
-// Unlike TrackballControls, it maintains the "up" direction object.up (+Y by default).
+// Unlike TrackballControls, it won't allow view to become upside down.
 //
 //    Orbit - left mouse
 //    Zoom - middle mouse, or mousewheel
-//    Pan - right mouse
 
 THREE.OrbitControls = function ( object, domElement ) {
 
@@ -149,9 +148,6 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 			// restrict radius to be between desired limits
 			spherical.radius = Math.max( scope.minDistance, Math.min( scope.maxDistance, spherical.radius ) );
-
-			// move target to panned location
-			scope.target.add( panOffset );
 
 			offset.setFromSpherical( spherical );
 
