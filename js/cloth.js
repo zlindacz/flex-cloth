@@ -1,5 +1,3 @@
-// var guiEnabled = true;
-
 var DAMPING = 0.03;
 var DRAG = 1 - DAMPING;
 var MASS = 0.1;
@@ -17,29 +15,26 @@ var gravity = new THREE.Vector3( 0, -GRAVITY, 0 ).multiplyScalar( MASS );
 var TIMESTEP = 18 / 1000;
 var TIMESTEP_SQ = TIMESTEP * TIMESTEP;
 
-// var wind = true;
-// var windStrength = 2;
-// var windForce = new THREE.Vector3( 0, 0, 0 );
-
-// var clothInitialPosition = plane(restDistance * xSegs, restDistance * ySegs);
+var pos;
 var clothInitialPosition = plane(400, 400);
 var cloth = new Cloth(xSegs, ySegs, fabricLength);
-var pos;
-// var tmpForce = new THREE.Vector3(); // for wind calc
 
-var diff = new THREE.Vector3();
+var diff = new THREE.Vector3(); // variable used to compare vectors
+
+guiControls = new function() {
+  this.clothColor = 0xaa2929;
+  this.floorColor = 0x404761;
+}
+
+gui = new dat.GUI();
+gui.addColor(guiControls, "clothColor").name("Cloth Color").onChange(function(value) {clothMaterial.color.setHex(value);});
+gui.addColor(guiControls, "floorColor").name("Floor Color").onChange(function(value) {floorMaterial.color.setHex(value);});
 
 
 function plane(width, height) {
   return function(u, v) {
-    // var x = (u - 0.5) * width;
-    // var y = (v + 0.5) * height;
-    // var z = 0;
-
     var x = u * width - width/2;
-    // var y = 50; //height/2;
     var y = 75;
-    // var z = v * height - height/2;
     var z = v * height - height/2;
 
     return new THREE.Vector3(x, y, z);
@@ -58,7 +53,6 @@ function Particle(x, y, z, mass) {
 }
 
 // force -> acceleration
-
 Particle.prototype.addForce = function(force) {
   this.acceleration.add(
     this.tmp2.copy(force).multiplyScalar(this.invMass)
@@ -100,7 +94,6 @@ function repelParticles( p1, p2, distance) {
 }
 
 // performs Verlet integration
-
 function Cloth(w, h, l) {
   this.w = w;
   this.h = h;
@@ -113,7 +106,6 @@ function Cloth(w, h, l) {
 
   // create particles: each pixel of the cloth is a particle
   // that has mass and responds to forces
-
   for (v = 0; v <= h; v++ ) {
     for (u = 0; u <= w; u++) {
       particles.push(new Particle( u/w, v/h, 0, MASS ));
@@ -121,7 +113,7 @@ function Cloth(w, h, l) {
   }
 
   // structural springs: each particle can only be a certain distance
-  // from neighboring particles, allows for movement without disintegration
+  // from neighboring particles (constraint), allows for movement without disintegration
   // of the "material" and gives "springy" feel
 
   // if (structuralSprings) {
@@ -150,15 +142,7 @@ function Cloth(w, h, l) {
   this.index = index;
 }
 
-// function map(n, start1, stop1, start2, stop2) {
-//   return ((n-start1)/(stop1-start1)) * (stop2-start2) + start2;
-// }
-
-// cube position, using floor distance
-// var cubeDimension = 50;
-// var cubePosition = new THREE.Vector3(0, cubeDimension, 0);
-// var prevCubePosition = new THREE.Vector3(0, cubeDimension, 0);
-
+// defines borders of the box so cloth knows when it collides with it
 var a, b, c, d, e, f;
 function initializeBounds(box) {
   a = box.min.x;
@@ -172,9 +156,6 @@ function initializeBounds(box) {
 var nearestX, nearestY, nearestZ;
 var currentX, currentY, currentZ;
 var xDist, yDist, zDist;
-// var randomPoints = [];
-// var rand, randX, randY;
-
 
 // for movements and constraints
 var lastTime;
@@ -196,7 +177,7 @@ function simulate(time) {
     particle.integrate(TIMESTEP_SQ); // verlet integration
   }
 
-  // constraints, so cloth stays in visible and area and behaves like cloth
+  // constraints
   constraints = cloth.constraints;
   il = constraints.length;
   for (i=0; i<il; i++) {
@@ -274,32 +255,3 @@ function simulate(time) {
     }
   }
 }
-
-
-
-  //   diff.subVectors(whereAmI, cubePosition);
-  //   if (diff.length() < cubeDimension) {
-  //     // if collided with model, make sure cloth doesn't go inside
-  //
-  //     // no friction behavior:
-  //     // project point out to nearest point on model surface
-  //     diff.normalize().multiplyScalar(cubeDimension);
-  //     posNoFriction.copy(cubePosition).add(diff);
-  //
-  //     diff.subVectors(whereWasI, cubePosition);
-  //
-  //     if (diff.length() > cubeDimension) {
-  //       // with friction behavior:
-  //       // add the distance that the sphere moved in the last frame
-  //       // to the previous position of the particle
-  //       diff.subVectors(cubePosition, prevCubePosition);
-  //       posFriction.copy(whereWasI).add(diff);
-  //
-  //       posNoFriction.multiplyScalar(1-friction);
-  //       posFriction.multiplyScalar(friction);
-  //       whereAmI.copy(posFriction.add(posNoFriction));
-  //     } else {
-  //       whereAmI.copy(posNoFriction);
-  //     }
-  //   }
-  // }

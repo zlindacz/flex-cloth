@@ -5,3 +5,5 @@ references:
 http://threejs.org/examples/webgl_animation_cloth.html
 https://aatishb.github.io/drape/
 http://www.gamedev.net/page/resources/_/technical/math-and-physics/a-verlet-based-approach-for-2d-game-physics-r2714
+
+https://github.com/dataarts/dat.gui
