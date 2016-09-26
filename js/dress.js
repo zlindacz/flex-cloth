@@ -98,7 +98,7 @@ function init() {
 		specular: 0x404761
   });
 
-  // floor mesh
+  // floor mesh and floor geometry
   var floorMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(10000, 10000), floorMaterial);
   floorMesh.position.y = -100;
   floorMesh.rotation.x = -Math.PI / 2;
